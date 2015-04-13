@@ -5,8 +5,8 @@
 [Brazilian Institute of Environment and Renewable Natural Resources](http://www.ibama.gov.br)
 
 # Expressions functions for QGIS 2.8
-Functions for use in expressionn editor.  
-Copy the script for your profile QGIS2 (~/.qgis2/python/expressions/)
+Functions for use in expressions editor.  
+Copy the script for your QGIS profile (~/.qgis2/python/expressions/).  
 
 ## Author
 Luiz Motta
