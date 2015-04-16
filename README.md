@@ -6,7 +6,7 @@
 
 # Expressions functions for QGIS 2.8
 Functions for use in expressions editor.  
-Copy the script for your QGIS profile (~/.qgis2/python/expressions/) or paste code in fuction editor of expressions.  
+Copy the script for your QGIS profile (~/.qgis2/python/expressions/) or paste code in function editor of expressions.  
 ## Author
 Luiz Motta
 
