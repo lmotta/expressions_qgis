@@ -124,6 +124,7 @@ def getDateLandsat(values, feature, parent):
   #
   return v_date
 
+@qgsfunction(args=1, group='Ibama')
 def getDateRapideye(values, feature, parent):
   """
   <h4>Return</h4>QDate from file name of Rapideye
