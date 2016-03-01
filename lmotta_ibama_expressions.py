@@ -123,3 +123,103 @@ def getDateLandsat(values, feature, parent):
     return QDate()
   #
   return v_date
+
+def getDateRapideye(values, feature, parent):
+  """
+  <h4>Return</h4>QDate from file name of Rapideye
+  <p><h4>Syntax</h4>getDateRapideye(name_rapideye)</p>
+  <p><h4>Argument</h4>name_rapideye -> name file of Rapideye</p>
+  <p><h4>Example</h4>getDateRapideye('2227625_2012-12-26T142009_RE1_3A-NAC_14473192_171826')-> QDate(2012, 12, 26)</p>
+  """
+  try:
+    v_date = QDate.fromString( values[0].split('_')[1][:10], "yyyy-MM-dd" )
+  except:
+    raise Exception("Enter with Rapideye name (ex. '2227625_2012-12-26T142009_RE1_3A-NAC_14473192_171826'). Value error = %s" % values[0])
+    return QDate()
+  #
+  return v_date
+  
+@qgsfunction(args=1, group="Ibama")
+def getDateSentinel(values, feature, parent):
+  """
+  <h4>Return</h4>QDate from file name of Sentinel
+  <p><h4>Syntax</h4>getDateRapideye(name_sentinel)</p>
+  <p><h4>Argument</h4>name_sentinel -> name file of Sentinel</p>
+  <p><h4>Example</h4>getDateSentinel('s1a-ew-grd-hh-20141031t223708-20141031t223811-003079-003869-001')-> QDate(2014, 10, 31)</p>
+  """
+  try:
+    v_date = QDate.fromString( values[0].split('-')[5][:8], "yyyyMMdd" )
+  except:
+    raise Exception("Enter with Sentinel name (ex. 's1a-ew-grd-hh-20141031t223708-20141031t223811-003079-003869-001'). Value error = %s" % values[0])
+    return QDate()
+  #
+  return v_date
+
+@qgsfunction(args=0, group="Ibama")
+def num_geoms(values, feature, parent):
+  """
+  <h4>Return</h4>Number of geoms
+  <p><h4>Syntax</h4>num_geoms()</p>
+  """
+  geom = feature.geometry()
+  if geom is None or not geom.isGeosValid():
+    return -1
+  if not geom.isMultipart():
+    return 1
+  wkbType = geom.wkbType()
+  if wkbType == QGis.WKBMultiPoint:
+    return len( geom.asMultiPoint() )
+  if wkbType == QGis.WKBMultiLineString:
+    return len( geom.asMultiPolyline() ) 
+  if wkbType == QGis.WKBMultiPolygon:
+    return len( geom.asMultiPolygon() ) 
+
+  return -1
+
+@qgsfunction(args=1, group="Ibama")
+def json_leaflet_catalog(values, feature, parent):
+  """
+  <h4>Return</h4>Leafleft Javascript code
+  <p><h4>Syntax</h4>json_leaflet_catalog('satellite')</p>
+  <p><h4>Argument</h4>satellite -> name of satellite</p>
+  <p><h4>Example</h4>json_leaflet_catalog('landsat')-> { 'name': ..., 'url':.., 'southWest':..., 'northEast':...}</p>
+  """
+  satellite = values[0]
+  crsLayer = qgis.utils.iface.activeLayer().crs()
+  geom = feature.geometry()
+
+  cr4326 = QgsCoordinateReferenceSystem( 4326, QgsCoordinateReferenceSystem.EpsgCrsId )
+  ct = QgsCoordinateTransform( crsLayer, cr4326 )
+  bb = ct.transform( geom.boundingBox() )
+  
+  image = feature.attribute( 'image' )
+  url = "../../tms/%s/%s.tms/{z}/{x}/{y}.png" % ( satellite, image.replace( ".tif", "" ) )
+  southWest = "L.latLng( %f, %f )" % ( bb.yMinimum(), bb.xMinimum() )
+  northEast = "L.latLng( %f, %f )" % ( bb.yMaximum(), bb.xMaximum() )
+
+  return "{ 'name': '%s', 'url': '%s', 'southWest': %s, 'northEast': %s }" % ( image, url, southWest, northEast)
+
+@qgsfunction(args=1, group="Ibama")
+def area_srid(values, feature, parent):
+  """
+  <h4>Return</h4>Area using the SRID
+  <p><h4>Syntax</h4>area_srid(srid)</p>
+  <p><h4>Argument</h4>srid -> SRID</p>
+  <p><h4>Example</h4>area_srid(5641)-> area</p>
+  """
+  srid = values[0]
+  if not type(srid) is int:
+        raise Exception("Enter with SRID(type is integer")
+        return -1
+  
+  crDest = QgsCoordinateReferenceSystem( srid, QgsCoordinateReferenceSystem. InternalCrsId)
+  ct = QgsCoordinateTransform( qgis.utils.iface.activeLayer().crs(), crDest )
+  geom = QgsGeometry( feature.geometry() )
+  geom.transform( ct )
+  return geom.area()
+
+@qgsfunction(args=1, group="Ibama")
+def is_selected(values, feature, parent):
+  # Source: http://gis.stackexchange.com/questions/157718/label-only-selected-feature-using-qgis/157769#157769
+  layer = qgis.utils.iface.activeLayer()
+  return feature.id() in layer.selectedFeaturesIds()
