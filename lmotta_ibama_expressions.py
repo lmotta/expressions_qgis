@@ -56,7 +56,7 @@ def getNameFile(values, feature, parent):
   #
   return name
 
-@qgsfunction(0, "Ibama")
+@qgsfunction(0, "Ibama", usesgeometry=True)
 def dms_x(values, feature, parent):
   """
   <h4>Return</h4>Coordinate X of geometry D M S Q(W or E)
@@ -72,7 +72,7 @@ def dms_x(values, feature, parent):
   orients = {True: 'E', False: 'W'}
   return dms_format( point.x(), orients )
 
-@qgsfunction(0, "Ibama")
+@qgsfunction(0, "Ibama", usesgeometry=True)
 def dms_y(values, feature, parent):
   """
   <h4>Return</h4>Coordinate Y of geometry D M S Q(N or S)
