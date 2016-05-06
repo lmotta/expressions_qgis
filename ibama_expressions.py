@@ -36,6 +36,22 @@ def dms_format(dd, orients):
   #
   return formatDMS( decdeg2dms( dd ) )
 
+def getGeomTrasformed(feature, idEpsg, isGeographicCRS):
+  if not type(idEpsg) is int:
+        raise Exception("Enter with ID EPSG with integer type")
+        return -1
+  crDest = QgsCoordinateReferenceSystem( idEpsg, QgsCoordinateReferenceSystem. EpsgCrsId)
+  if not crDest.geographicFlag() == isGeographicCRS:
+        v_is = 'not' if isGeographicCRS else ''
+        msg = "ID EPSG is %s Geographic" % v_is
+        raise Exception(msg)
+        return -1
+  ct = QgsCoordinateTransform( qgis.utils.iface.activeLayer().crs(), crDest )
+  geom = QgsGeometry( feature.geometry() )
+  geom.transform( ct )
+  
+  return geom
+
 # \\\\\\\\ Inline Functions ////////
 
 @qgsfunction(args=1, group='Ibama')
@@ -56,32 +72,38 @@ def getNameFile(values, feature, parent):
   #
   return name
 
-@qgsfunction(0, "Ibama", usesgeometry=True)
+@qgsfunction(args=1, group="Ibama", usesgeometry=True)
 def dms_x(values, feature, parent):
   """
   <h4>Return</h4>Coordinate X of geometry D M S Q(W or E)
     <p> Point: Coordinate own</p>
     <p> Line: Coordinate of center</p>
     <p> Polygon: Coordinate of centroid</p>
-  <p><h4>Syntax</h4>$dms_x</p>
+  <p><h4>Syntax</h4>dms_x(ID EPSG)</p>
   """
-  geom = feature.geometry()
+  idEpsg = values[0]
+  geom = getGeomTrasformed(feature, idEpsg, True)
+  if geom == -1:
+	  return ''
   if geom is None:
     return 'No Geometry'
   point = geom.centroid().asPoint()
   orients = {True: 'E', False: 'W'}
   return dms_format( point.x(), orients )
 
-@qgsfunction(0, "Ibama", usesgeometry=True)
+@qgsfunction(args=1, group="Ibama", usesgeometry=True)
 def dms_y(values, feature, parent):
   """
   <h4>Return</h4>Coordinate Y of geometry D M S Q(N or S)
     <p> Point: Coordinate own</p>
     <p> Line: Coordinate of center</p>
     <p> Polygon: Coordinate of centroid</p>
-  <p><h4>Syntax</h4>$dms_x</p>
+  <p><h4>Syntax</h4>dms_y(ID EPSG)</p>
   """
-  geom = feature.geometry()
+  idEpsg = values[0]
+  geom = getGeomTrasformed(feature, idEpsg, True)
+  if geom == -1:
+	  return ''
   if geom is None:
     return 'No Geometry'
   point = geom.centroid().asPoint()
@@ -156,7 +178,7 @@ def getDateSentinel(values, feature, parent):
   #
   return v_date
 
-@qgsfunction(args=0, group="Ibama")
+@qgsfunction(args=0, group="Ibama", usesgeometry=True)
 def num_geoms(values, feature, parent):
   """
   <h4>Return</h4>Number of geoms
@@ -177,7 +199,7 @@ def num_geoms(values, feature, parent):
 
   return -1
 
-@qgsfunction(args=1, group="Ibama")
+@qgsfunction(args=1, group="Ibama", usesgeometry=True)
 def json_leaflet_catalog(values, feature, parent):
   """
   <h4>Return</h4>Leafleft Javascript code
@@ -200,23 +222,18 @@ def json_leaflet_catalog(values, feature, parent):
 
   return "{ 'name': '%s', 'url': '%s', 'southWest': %s, 'northEast': %s }" % ( image, url, southWest, northEast)
 
-@qgsfunction(args=1, group="Ibama")
-def area_srid(values, feature, parent):
+@qgsfunction(args=1, group="Ibama", usesgeometry=True)
+def area_epsg(values, feature, parent):
   """
-  <h4>Return</h4>Area using the SRID
-  <p><h4>Syntax</h4>area_srid(srid)</p>
-  <p><h4>Argument</h4>srid -> SRID</p>
-  <p><h4>Example</h4>area_srid(5641)-> area</p>
+  <h4>Return</h4>Area using the ID EPSG
+  <p><h4>Syntax</h4>area_epsg(idEPSG)</p>
+  <p><h4>Argument</h4>ID EPS </p>
+  <p><h4>Example</h4>area_epsg(5641)-> area</p>
   """
-  srid = values[0]
-  if not type(srid) is int:
-        raise Exception("Enter with SRID(type is integer")
-        return -1
-  
-  crDest = QgsCoordinateReferenceSystem( srid, QgsCoordinateReferenceSystem. InternalCrsId)
-  ct = QgsCoordinateTransform( qgis.utils.iface.activeLayer().crs(), crDest )
-  geom = QgsGeometry( feature.geometry() )
-  geom.transform( ct )
+  idEpsg = values[0]
+  geom = getGeomTrasformed(feature, idEpsg, False)
+  if geom == -1:
+          return -1
   return geom.area()
 
 @qgsfunction(args=1, group="Ibama")
