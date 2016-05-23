@@ -18,10 +18,10 @@ email                : motta.luiz@gmail.com
  ***************************************************************************/
 """
 
-from qgis.core import ( qgsfunction )
-#from qgis.gui import *
+from qgis import core as QgsCore
+import qgis.utils as QgsUtils
+from PyQt4 import QtCore
 
-from PyQt4.QtCore import ( QDate, QFileInfo )
 
 # //////// Inline Functions \\\\\\\\
 
@@ -40,14 +40,14 @@ def getGeomTrasformed(feature, idEpsg, isGeographicCRS):
   if not type(idEpsg) is int:
         raise Exception("Enter with ID EPSG with integer type")
         return -1
-  crDest = QgsCoordinateReferenceSystem( idEpsg, QgsCoordinateReferenceSystem. EpsgCrsId)
+  crDest = QgsCore.QgsCoordinateReferenceSystem( idEpsg, QgsCore.QgsCoordinateReferenceSystem. EpsgCrsId)
   if not crDest.geographicFlag() == isGeographicCRS:
         v_is = 'not' if isGeographicCRS else ''
         msg = "ID EPSG is %s Geographic" % v_is
         raise Exception(msg)
         return -1
-  ct = QgsCoordinateTransform( qgis.utils.iface.activeLayer().crs(), crDest )
-  geom = QgsGeometry( feature.geometry() )
+  ct = QgsCore.QgsCoordinateTransform( QgsUtils.iface.activeLayer().crs(), crDest )
+  geom = QgsCore.QgsGeometry( feature.geometry() )
   geom.transform( ct )
   
   return geom
@@ -64,7 +64,7 @@ def getNameFile(values, feature, parent):
   <p>* Change the '/' for your system (this example is for Linux)</p>
   """
   try:
-    info = QFileInfo( values[0] )
+    info = QtCore.QFileInfo( values[0] )
     name = info.baseName()
   except:
     raise Exception("Enter with name of file.")
@@ -84,7 +84,7 @@ def dms_x(values, feature, parent):
   idEpsg = values[0]
   geom = getGeomTrasformed(feature, idEpsg, True)
   if geom == -1:
-	  return ''
+          return ''
   if geom is None:
     return 'No Geometry'
   point = geom.centroid().asPoint()
@@ -101,9 +101,9 @@ def dms_y(values, feature, parent):
   <p><h4>Syntax</h4>dms_y(ID EPSG)</p>
   """
   idEpsg = values[0]
-  geom = getGeomTrasformed(feature, idEpsg, True)
+  geom = getGeomTrasformed( feature, idEpsg, True )
   if geom == -1:
-	  return ''
+          return ''
   if geom is None:
     return 'No Geometry'
   point = geom.centroid().asPoint()
@@ -120,7 +120,7 @@ def existFile(values, feature, parent):
   <p>* Change the '/' for your system (this example is for Linux)</p>
   """
   try:
-    info = QFileInfo( values[0] )
+    info = QtCore.QFileInfo( values[0] )
     exist = info.isFile()
   except:
     raise Exception("Enter with file with path")
@@ -137,12 +137,12 @@ def getDateLandsat(values, feature, parent):
   <p><h4>Example</h4>getDateLandsat('LC81390452014295LGN00')-> QDate(2014, 10, 22)</p>
   """
   try:
-    julianYear = QDate( int( values[0][9:13] ), 1, 1 ).toJulianDay() - 1
+    julianYear = QtCore.QDate( int( values[0][9:13] ), 1, 1 ).toJulianDay() - 1
     julianDays = julianYear + int( values[0][13:16] )
-    v_date = QDate.fromJulianDay ( julianDays )
+    v_date = QtCore.QDate.fromJulianDay ( julianDays )
   except:
     raise Exception("Enter with landsat 8 name (ex. 'LC81390452014295LGN00').")
-    return QDate()
+    return QtCore.QDate()
   #
   return v_date
 
@@ -155,10 +155,10 @@ def getDateRapideye(values, feature, parent):
   <p><h4>Example</h4>getDateRapideye('2227625_2012-12-26T142009_RE1_3A-NAC_14473192_171826')-> QDate(2012, 12, 26)</p>
   """
   try:
-    v_date = QDate.fromString( values[0].split('_')[1][:10], "yyyy-MM-dd" )
+    v_date = QtCore.QDate.fromString( values[0].split('_')[1][:10], "yyyy-MM-dd" )
   except:
     raise Exception("Enter with Rapideye name (ex. '2227625_2012-12-26T142009_RE1_3A-NAC_14473192_171826'). Value error = %s" % values[0])
-    return QDate()
+    return QtCore.QDate()
   #
   return v_date
   
@@ -171,10 +171,10 @@ def getDateSentinel(values, feature, parent):
   <p><h4>Example</h4>getDateSentinel('s1a-ew-grd-hh-20141031t223708-20141031t223811-003079-003869-001')-> QDate(2014, 10, 31)</p>
   """
   try:
-    v_date = QDate.fromString( values[0].split('-')[5][:8], "yyyyMMdd" )
+    v_date = QtCore.QDate.fromString( values[0].split('-')[5][:8], "yyyyMMdd" )
   except:
     raise Exception("Enter with Sentinel name (ex. 's1a-ew-grd-hh-20141031t223708-20141031t223811-003079-003869-001'). Value error = %s" % values[0])
-    return QDate()
+    return QtCore.QDate()
   #
   return v_date
 
@@ -208,11 +208,11 @@ def json_leaflet_catalog(values, feature, parent):
   <p><h4>Example</h4>json_leaflet_catalog('landsat')-> { 'name': ..., 'url':.., 'southWest':..., 'northEast':...}</p>
   """
   satellite = values[0]
-  crsLayer = qgis.utils.iface.activeLayer().crs()
+  crsLayer = QgsUtils.iface.activeLayer().crs()
   geom = feature.geometry()
 
-  cr4326 = QgsCoordinateReferenceSystem( 4326, QgsCoordinateReferenceSystem.EpsgCrsId )
-  ct = QgsCoordinateTransform( crsLayer, cr4326 )
+  cr4326 = QgsCore.QgsCoordinateReferenceSystem( 4326, QgsCore.QgsCoordinateReferenceSystem.EpsgCrsId )
+  ct = QgsCore.QgsCoordinateTransform( crsLayer, cr4326 )
   bb = ct.transform( geom.boundingBox() )
   
   image = feature.attribute( 'image' )
@@ -231,7 +231,7 @@ def area_epsg(values, feature, parent):
   <p><h4>Example</h4>area_epsg(5641)-> area</p>
   """
   idEpsg = values[0]
-  geom = getGeomTrasformed(feature, idEpsg, False)
+  geom = getGeomTrasformed( feature, idEpsg, False )
   if geom == -1:
           return -1
   return geom.area()
@@ -239,5 +239,5 @@ def area_epsg(values, feature, parent):
 @qgsfunction(args=1, group="Ibama")
 def is_selected(values, feature, parent):
   # Source: http://gis.stackexchange.com/questions/157718/label-only-selected-feature-using-qgis/157769#157769
-  layer = qgis.utils.iface.activeLayer()
+  layer = QgsUtils.iface.activeLayer()
   return feature.id() in layer.selectedFeaturesIds()
