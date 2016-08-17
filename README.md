@@ -4,7 +4,7 @@
 ![][ibama_logo]  
 [Brazilian Institute of Environment and Renewable Natural Resources](http://www.ibama.gov.br)
 
-# Expressions functions for QGIS 2.8
+# Expressions functions for QGIS 2.8 or above
 Functions for use in expressions editor.  
 Copy the script for your QGIS profile (~/.qgis2/python/expressions/) or paste code in function editor of expressions.  
 ## Author
